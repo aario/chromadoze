@@ -45,14 +45,18 @@ public class UIState {
     private boolean mAutoPlay;
     private boolean mIgnoreAudioFocus;
     private boolean mVolumeLimitEnabled;
+    private boolean mSleepTimerEnabled;
     private int mVolumeLimit;
+    private int mSleepTimer;
     public static final int MAX_VOLUME = 100;
+    public static final int MAX_SLEEP_MINUTES = 120;
 
     public void saveState(SharedPreferences.Editor pref) {
         pref.putBoolean("locked", mLocked);
         pref.putBoolean("autoPlay", mAutoPlay);
         pref.putBoolean("ignoreAudioFocus", mIgnoreAudioFocus);
         pref.putInt("volumeLimit", getVolumeLimit());
+        pref.putInt("sleepTimer", getSleepTimer());
         pref.putString("phononS", mScratchPhonon.toJSON());
         for (int i = 0; i < mSavedPhonons.size(); i++) {
             pref.putString("phonon" + i, mSavedPhonons.get(i).toJSON());
@@ -67,6 +71,8 @@ public class UIState {
         setIgnoreAudioFocus(pref.getBoolean("ignoreAudioFocus", false));
         setVolumeLimit(pref.getInt("volumeLimit", MAX_VOLUME));
         setVolumeLimitEnabled(mVolumeLimit != MAX_VOLUME);
+        setSleepTimer(pref.getInt("sleepTimer", 0));
+        setSleepTimerEnabled(mSleepTimer != 0);
 
         // Load the scratch phonon.
         mScratchPhonon = new PhononMutable();
@@ -240,5 +246,38 @@ public class UIState {
 
     public int getVolumeLimit() {
         return mVolumeLimitEnabled ? mVolumeLimit : MAX_VOLUME;
+    }
+
+    public void setSleepTimerEnabled(boolean enabled) {
+        if (mSleepTimerEnabled == enabled) {
+            return;
+        }
+        mSleepTimerEnabled = enabled;
+        if (mSleepTimer != MAX_SLEEP_MINUTES) {
+            mDirty = true;
+        }
+    }
+
+    public void setSleepTimer(int minute) {
+        if (minute < 0) {
+            minute = 0;
+        } else if (minute > MAX_SLEEP_MINUTES) {
+            minute = MAX_SLEEP_MINUTES;
+        }
+        if (mSleepTimer == minute) {
+            return;
+        }
+        mSleepTimer = minute;
+        if (mSleepTimerEnabled) {
+            mDirty = true;
+        }
+    }
+
+    public boolean getSleepTimerEnabled() {
+        return mSleepTimerEnabled;
+    }
+
+    public int getSleepTimer() {
+        return mSleepTimerEnabled ? mSleepTimer : MAX_SLEEP_MINUTES;
     }
 }

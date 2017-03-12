@@ -38,7 +38,9 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
     private SwitchCompat mAutoPlayCheck;
     private SwitchCompat mIgnoreAudioFocusCheck;
     private SwitchCompat mVolumeLimitCheck;
-    private SeekBar mVolumeLimitSeek;
+    private SeekBar mVolumeLimitSeek ;
+    private SwitchCompat mSleepTimerCheck;
+    private SeekBar mSleepTimerSeek;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -55,6 +57,8 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
         mIgnoreAudioFocusCheck = (SwitchCompat) v.findViewById(R.id.IgnoreAudioFocusCheck);
         mVolumeLimitCheck = (SwitchCompat) v.findViewById(R.id.VolumeLimitCheck);
         mVolumeLimitSeek = (SeekBar) v.findViewById(R.id.VolumeLimitSeek);
+        mSleepTimerCheck = (SwitchCompat) v.findViewById(R.id.SleepTimerCheck);
+        mSleepTimerSeek = (SeekBar) v.findViewById(R.id.SleepTimerSeek);
 
         return v;
     }
@@ -86,6 +90,11 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
         mVolumeLimitSeek.setMax(UIState.MAX_VOLUME);
         mVolumeLimitSeek.setOnSeekBarChangeListener(this);
         redrawVolumeLimit();
+
+        mSleepTimerCheck.setOnCheckedChangeListener(this);
+        mSleepTimerSeek.setMax(UIState.MAX_SLEEP_MINUTES);
+        mSleepTimerSeek.setOnSeekBarChangeListener(this);
+        redrawSleepTimer();
     }
 
     @Override
@@ -103,6 +112,9 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
         if (seekBar == mVolumeLimitSeek) {
             mUiState.setVolumeLimit(progress);
             redrawVolumeLimit();
+        } else if (seekBar == mSleepTimerSeek) {
+            mUiState.setSleepTimer(progress);
+            redrawSleepTimer();
         } else {
             final PhononMutable phm = mUiState.getPhononMutable();
             if (seekBar == mMinVolSeek) {
@@ -126,6 +138,9 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
         } else if (buttonView == mVolumeLimitCheck) {
             mUiState.setVolumeLimitEnabled(isChecked);
             redrawVolumeLimit();
+        } else if (buttonView == mSleepTimerCheck) {
+            mUiState.setSleepTimerEnabled(isChecked);
+            redrawSleepTimer();
         }
         mUiState.sendIfDirty();
     }
@@ -143,5 +158,13 @@ public class OptionsFragment extends Fragment implements OnSeekBarChangeListener
         mVolumeLimitCheck.setChecked(enabled);
         mVolumeLimitSeek.setVisibility(enabled ? View.VISIBLE : View.INVISIBLE);
         mVolumeLimitSeek.setProgress(mUiState.getVolumeLimit());
+    }
+
+    private void redrawSleepTimer() {
+        boolean enabled = mUiState.getSleepTimerEnabled();
+        mSleepTimerCheck.setChecked(enabled);
+        mSleepTimerCheck.setText(enabled ? String.format("Sleep Timer: %d min", mUiState.getSleepTimer()) : "Sleep Timer");
+        mSleepTimerSeek.setVisibility(enabled ? View.VISIBLE : View.INVISIBLE);
+        mSleepTimerSeek.setProgress(mUiState.getSleepTimer());
     }
 }
